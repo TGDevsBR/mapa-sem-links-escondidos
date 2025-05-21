@@ -4,7 +4,25 @@ import { SearchBox } from '@/components/SearchBox';
 import { BusinessResults } from '@/components/BusinessResults';
 import { MapPin } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import type { Business } from '../types/business';
+
+// Add type definition for the Google Maps API
+declare global {
+  interface Window {
+    google: {
+      maps: {
+        places: {
+          PlacesService: any;
+          PlacesServiceStatus: {
+            OK: string;
+          };
+        };
+      };
+    };
+  }
+}
 
 const Index = () => {
   const [results, setResults] = React.useState<Business[]>([]);
@@ -47,7 +65,7 @@ const Index = () => {
     }
 
     // Create a PlacesService with a temporary div (required by the API)
-    const placesService = new google.maps.places.PlacesService(document.createElement('div'));
+    const placesService = new window.google.maps.places.PlacesService(document.createElement('div'));
     
     // Construct the query
     let query = '';
@@ -62,12 +80,12 @@ const Index = () => {
       fields: ['name', 'place_id', 'formatted_address', 'website', 'rating', 'types'],
     };
 
-    placesService.textSearch(request, (results, status) => {
-      if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+    placesService.textSearch(request, (results: any, status: string) => {
+      if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
         console.log("Places API results:", results);
         
         // Process and filter the results
-        const businessResults: Business[] = results.map(place => ({
+        const businessResults: Business[] = results.map((place: any) => ({
           id: place.place_id || Math.random().toString(),
           name: place.name || 'Sem nome',
           hasWebsite: !!place.website,
