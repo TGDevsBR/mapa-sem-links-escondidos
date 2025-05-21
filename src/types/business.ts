@@ -6,4 +6,5 @@ export interface Business {
   address: string;
   type: string;
   rating: number;
+  phone?: string;
 }

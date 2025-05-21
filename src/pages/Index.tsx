@@ -2,10 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { SearchBox } from '@/components/SearchBox';
 import { BusinessResults } from '@/components/BusinessResults';
-import { MapPin } from 'lucide-react';
+import { MapPin, FileText } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { PDFExport } from '@/components/PDFExport';
 import type { Business } from '../types/business';
 
 // Add type definition for the Google Maps API
@@ -30,7 +31,8 @@ const Index = () => {
   const [searchPerformed, setSearchPerformed] = React.useState(false);
   const [searchLocation, setSearchLocation] = React.useState('');
   const [googleApiLoaded, setGoogleApiLoaded] = useState(false);
-  const [googleApiKey, setGoogleApiKey] = useState('');
+  // Set the Google API key directly
+  const [googleApiKey] = useState('AIzaSyDv4AAQx97nmXgGZNlficTVyiJEL0ZLoHk');
 
   // Function to load Google Places API script
   useEffect(() => {
@@ -77,27 +79,46 @@ const Index = () => {
 
     const request = {
       query,
-      fields: ['name', 'place_id', 'formatted_address', 'website', 'rating', 'types'],
+      fields: ['name', 'place_id', 'formatted_address', 'website', 'rating', 'types', 'formatted_phone_number'],
     };
 
     placesService.textSearch(request, (results: any, status: string) => {
       if (status === window.google.maps.places.PlacesServiceStatus.OK && results) {
         console.log("Places API results:", results);
         
-        // Process and filter the results
-        const businessResults: Business[] = results.map((place: any) => ({
-          id: place.place_id || Math.random().toString(),
-          name: place.name || 'Sem nome',
-          hasWebsite: !!place.website,
-          address: place.formatted_address || 'Sem endereço',
-          type: place.types?.length ? mapGoogleType(place.types[0]) : 'Negócio',
-          rating: place.rating || 0
-        }));
+        // Process results to get detailed information including phone numbers
+        const processedResults: Business[] = [];
+        let processedCount = 0;
         
-        // Filter businesses without websites
-        const filteredResults = businessResults.filter(business => !business.hasWebsite);
-        
-        setResults(filteredResults);
+        results.forEach((place: any, index: number) => {
+          // Get details for each place to retrieve phone number
+          placesService.getDetails(
+            { placeId: place.place_id, fields: ['formatted_phone_number'] },
+            (placeDetails: any, detailStatus: string) => {
+              processedCount++;
+              
+              const business: Business = {
+                id: place.place_id || Math.random().toString(),
+                name: place.name || 'Sem nome',
+                hasWebsite: !!place.website,
+                address: place.formatted_address || 'Sem endereço',
+                type: place.types?.length ? mapGoogleType(place.types[0]) : 'Negócio',
+                rating: place.rating || 0,
+                phone: placeDetails && placeDetails.formatted_phone_number || 'Sem telefone'
+              };
+              
+              processedResults.push(business);
+              
+              // When all places are processed
+              if (processedCount === results.length) {
+                // Filter businesses without websites
+                const filteredResults = processedResults.filter(business => !business.hasWebsite);
+                setResults(filteredResults);
+                setLoading(false);
+              }
+            }
+          );
+        });
       } else {
         console.error("Places API error:", status);
         toast({
@@ -106,9 +127,8 @@ const Index = () => {
           variant: "destructive",
         });
         setResults([]);
+        setLoading(false);
       }
-      
-      setLoading(false);
     });
   };
 
@@ -140,7 +160,7 @@ const Index = () => {
     if (!googleApiLoaded) {
       toast({
         title: "API não carregada",
-        description: "A API do Google ainda não foi carregada. Por favor, informe uma chave API do Google.",
+        description: "A API do Google ainda não foi carregada. Aguarde um momento e tente novamente.",
         variant: "destructive",
       });
       setLoading(false);
@@ -161,41 +181,6 @@ const Index = () => {
       
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-3xl mx-auto">
-          {!googleApiKey && (
-            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <h3 className="font-medium text-yellow-800">Configure sua chave API do Google</h3>
-              <p className="text-sm text-yellow-700 mb-2">
-                Para realizar buscas no Google Maps, você precisa informar uma chave API do Google com a Places API habilitada.
-              </p>
-              <div className="flex gap-2">
-                <Input
-                  type="text"
-                  placeholder="Cole sua chave API do Google aqui"
-                  value={googleApiKey}
-                  onChange={(e) => setGoogleApiKey(e.target.value)}
-                  className="text-sm"
-                />
-                <Button
-                  onClick={() => {
-                    if (googleApiKey) {
-                      toast({
-                        title: "Chave API configurada",
-                        description: "Sua chave API foi configurada com sucesso.",
-                        variant: "default",
-                      });
-                    }
-                  }}
-                  className="bg-blue-600"
-                >
-                  Salvar
-                </Button>
-              </div>
-              <p className="text-xs text-yellow-700 mt-2">
-                Obtenha sua chave API no <a href="https://console.cloud.google.com" className="underline" target="_blank" rel="noreferrer">Console do Google Cloud Platform</a> e habilite a Places API.
-              </p>
-            </div>
-          )}
-          
           <div className={`transition-all duration-500 ${searchPerformed ? 'transform -translate-y-4' : 'py-12'}`}>
             <h2 className={`text-center ${searchPerformed ? 'text-xl mb-6' : 'text-3xl mb-8'}`}>
               {searchPerformed ? `Empresas sem site em ${searchLocation}` : 'Encontre empresas sem presença digital'}
@@ -205,6 +190,11 @@ const Index = () => {
           
           {searchPerformed && (
             <div className="mt-8 animate-fadeIn">
+              {results.length > 0 && (
+                <div className="mb-4 flex justify-end">
+                  <PDFExport businesses={results} location={searchLocation} />
+                </div>
+              )}
               <BusinessResults results={results} loading={loading} />
             </div>
           )}

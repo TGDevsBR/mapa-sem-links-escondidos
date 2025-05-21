@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MapPin, Star, Globe, AlertCircle, Building } from 'lucide-react';
+import { MapPin, Star, Globe, AlertCircle, Building, Phone } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import type { Business } from '../types/business';
 
@@ -68,6 +68,12 @@ export function BusinessResults({ results, loading }: BusinessResultsProps) {
                     <MapPin className="mr-1" size={14} />
                     <span>{business.address}</span>
                   </div>
+                  {business.phone && (
+                    <div className="flex items-center mt-2 text-sm text-gray-500">
+                      <Phone className="mr-1" size={14} />
+                      <span>{business.phone}</span>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
