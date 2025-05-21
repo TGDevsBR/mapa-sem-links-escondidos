@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Search, MapPin, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { toast } from '@/hooks/use-toast';
 import { 
   Select,
   SelectContent,
@@ -12,16 +13,27 @@ import {
 } from "@/components/ui/select";
 
 interface SearchBoxProps {
-  onSearch: (query: string, location: string) => void;
+  onSearch: (query: string, location: string, locationType: string) => void;
+  isLoading: boolean;
 }
 
-export function SearchBox({ onSearch }: SearchBoxProps) {
+export function SearchBox({ onSearch, isLoading }: SearchBoxProps) {
   const [location, setLocation] = useState('');
   const [locationType, setLocationType] = useState('neighborhood'); // neighborhood ou city
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSearch('empresas sem site', location || '');
+    
+    if (!location.trim()) {
+      toast({
+        title: "Localização necessária",
+        description: "Por favor, digite um bairro ou cidade para pesquisar",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    onSearch('empresas sem site', location, locationType);
   };
 
   return (
@@ -59,9 +71,18 @@ export function SearchBox({ onSearch }: SearchBoxProps) {
           <Button
             type="submit"
             className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded-full text-lg gap-2"
-            disabled={!location.trim()}
+            disabled={!location.trim() || isLoading}
           >
-            Buscar Empresas <ArrowRight size={18} />
+            {isLoading ? (
+              <>
+                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"/>
+                Buscando...
+              </>
+            ) : (
+              <>
+                Buscar Empresas <ArrowRight size={18} />
+              </>
+            )}
           </Button>
         </div>
       </form>
