@@ -60,14 +60,17 @@ export function PDFExport({ businesses, location }: PDFExportProps) {
       });
       
       // Add footer with page number
-      const pageCount = doc.internal.getNumberOfPages();
+      // Use type assertion for doc.internal to access required methods
+      const internal = doc.internal as any;
+      const pageCount = internal.getNumberOfPages();
+      
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         doc.setFontSize(8);
         doc.text(
           `Página ${i} de ${pageCount} - BuscaSemSite`,
-          doc.internal.pageSize.width / 2,
-          doc.internal.pageSize.height - 10,
+          internal.pageSize.width / 2,
+          internal.pageSize.height - 10,
           { align: 'center' }
         );
       }
