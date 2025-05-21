@@ -5,10 +5,6 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import type { Business } from '../types/business';
 
-// Add dependency for PDF generation
-<lov-add-dependency>jspdf@latest</lov-add-dependency>
-<lov-add-dependency>jspdf-autotable@latest</lov-add-dependency>
-
 interface PDFExportProps {
   businesses: Business[];
   location: string;
