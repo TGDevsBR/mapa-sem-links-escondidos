@@ -5,10 +5,6 @@ import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import type { Business } from '../types/business';
 
-// Import types for dynamic imports
-type JsPDF = typeof import('jspdf')['default'];
-type JsPDFAutoTable = typeof import('jspdf-autotable')['default'];
-
 interface PDFExportProps {
   businesses: Business[];
   location: string;
