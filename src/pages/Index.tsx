@@ -2,33 +2,34 @@
 import React from 'react';
 import { SearchBox } from '@/components/SearchBox';
 import { BusinessResults } from '@/components/BusinessResults';
-import { MapPin, Search } from 'lucide-react';
+import { MapPin } from 'lucide-react';
+import type { Business } from '../types/business';
 
 const Index = () => {
   const [results, setResults] = React.useState<Business[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [searchPerformed, setSearchPerformed] = React.useState(false);
+  const [searchLocation, setSearchLocation] = React.useState('');
 
   const handleSearch = (query: string, location: string) => {
     setLoading(true);
     setSearchPerformed(true);
+    setSearchLocation(location);
     
     // Simulação de resultados de busca
     setTimeout(() => {
       const mockResults = [
-        { id: 1, name: 'Restaurante Sabor Local', hasWebsite: false, address: 'Rua das Flores, 123', type: 'Restaurante', rating: 4.5 },
-        { id: 2, name: 'Salão de Beleza Estilo', hasWebsite: false, address: 'Av. Principal, 456', type: 'Beleza', rating: 4.2 },
-        { id: 3, name: 'Padaria Pão Quentinho', hasWebsite: true, address: 'Praça Central, 78', type: 'Alimentação', rating: 4.8 },
-        { id: 4, name: 'Mercadinho da Esquina', hasWebsite: false, address: 'Rua Lateral, 90', type: 'Mercearia', rating: 3.9 },
-        { id: 5, name: 'Auto Peças Silva', hasWebsite: false, address: 'Av. Industrial, 1020', type: 'Automotivo', rating: 4.0 },
-        { id: 6, name: 'Farmácia Saúde Total', hasWebsite: true, address: 'Rua da Saúde, 456', type: 'Saúde', rating: 4.6 },
-        { id: 7, name: 'Loja de Roupas Fashion', hasWebsite: false, address: 'Shopping Centro, Loja 45', type: 'Moda', rating: 4.3 },
+        { id: 1, name: 'Restaurante Sabor Local', hasWebsite: false, address: `${location}, Rua das Flores, 123`, type: 'Restaurante', rating: 4.5 },
+        { id: 2, name: 'Salão de Beleza Estilo', hasWebsite: false, address: `${location}, Av. Principal, 456`, type: 'Beleza', rating: 4.2 },
+        { id: 3, name: 'Padaria Pão Quentinho', hasWebsite: true, address: `${location}, Praça Central, 78`, type: 'Alimentação', rating: 4.8 },
+        { id: 4, name: 'Mercadinho da Esquina', hasWebsite: false, address: `${location}, Rua Lateral, 90`, type: 'Mercearia', rating: 3.9 },
+        { id: 5, name: 'Auto Peças Silva', hasWebsite: false, address: `${location}, Av. Industrial, 1020`, type: 'Automotivo', rating: 4.0 },
+        { id: 6, name: 'Farmácia Saúde Total', hasWebsite: true, address: `${location}, Rua da Saúde, 456`, type: 'Saúde', rating: 4.6 },
+        { id: 7, name: 'Loja de Roupas Fashion', hasWebsite: false, address: `${location}, Shopping Centro, Loja 45`, type: 'Moda', rating: 4.3 },
       ];
       
       // Filtra apenas empresas sem site
-      const filteredResults = query.toLowerCase().includes('todos') 
-        ? mockResults 
-        : mockResults.filter(business => !business.hasWebsite);
+      const filteredResults = mockResults.filter(business => !business.hasWebsite);
       
       setResults(filteredResults);
       setLoading(false);
@@ -46,9 +47,9 @@ const Index = () => {
       
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-3xl mx-auto">
-          <div className={`transition-all duration-500 ${searchPerformed ? 'transform -translate-y-4' : 'py-20'}`}>
+          <div className={`transition-all duration-500 ${searchPerformed ? 'transform -translate-y-4' : 'py-12'}`}>
             <h2 className={`text-center ${searchPerformed ? 'text-xl mb-6' : 'text-3xl mb-8'}`}>
-              Encontre empresas sem presença digital
+              {searchPerformed ? `Empresas sem site em ${searchLocation}` : 'Encontre empresas sem presença digital'}
             </h2>
             <SearchBox onSearch={handleSearch} />
           </div>
